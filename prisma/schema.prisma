@@ -1,0 +1,272 @@
+// This is your Prisma schema file,
+// learn more about it in the docs: https://pris.ly/d/prisma-schema
+
+generator client {
+  provider = "prisma-client-js"
+}
+
+datasource db {
+  provider = "mysql"
+  url      = env("DATABASE_URL")
+}
+
+model User {
+  id              Int      @id @default(autoincrement())
+  name            String
+  email           String   @unique
+  password        String
+  phone           String?
+  address         String?  @db.Text
+  institution     String?
+  identityDocUrl  String?  @map("identity_doc_url") @db.Text
+  role            Role     @default(USER)
+  stationId       Int?     @map("station_id")
+  station         Station? @relation(fields: [stationId], references: [id])
+  isVerified      Boolean  @default(false) @map("is_verified")
+  createdAt       DateTime @default(now()) @map("created_at")
+
+  news              News[]
+  articles          Article[]
+  activityLogs      ActivityLog[]
+  emailVerifications EmailVerification[]
+  dataRequests      DataRequest[]
+
+  @@map("users")
+}
+
+model Station {
+  id          Int      @id @default(autoincrement())
+  name        String   @unique
+  code        String   @unique  // e.g. "STAMET_BPN", "STAGEOF_BPN", etc.
+  hasAdmin    Boolean  @default(false) @map("has_admin")
+  createdAt   DateTime @default(now()) @map("created_at")
+
+  users       User[]
+
+  @@map("stations")
+}
+
+model EmailVerification {
+  id        Int      @id @default(autoincrement())
+  userId    Int      @map("user_id")
+  user      User     @relation(fields: [userId], references: [id])
+  code      String
+  expiresAt DateTime @map("expires_at")
+  used      Boolean  @default(false)
+  createdAt DateTime @default(now()) @map("created_at")
+
+  @@map("email_verifications")
+}
+
+model News {
+  id          Int      @id @default(autoincrement())
+  title       String
+  slug        String   @unique
+  description String   @db.Text
+  content     String?  @db.LongText
+  imageUrl    String?  @map("image_url")
+  category    String?  @default("berita") // "berita" or "kegiatan"
+  status      ContentStatus @default(PUBLISHED)
+  authorId    Int      @map("author_id")
+  author      User     @relation(fields: [authorId], references: [id])
+  createdAt   DateTime @default(now()) @map("created_at")
+  updatedAt   DateTime @updatedAt @map("updated_at")
+
+  @@map("news")
+}
+
+model Article {
+  id          Int      @id @default(autoincrement())
+  title       String
+  slug        String   @unique
+  description String   @db.Text
+  content     String?  @db.LongText
+  imageUrl    String?  @map("image_url")
+  pdfUrl      String?  @map("pdf_url") @db.Text
+  category    String?  @default("press_release")
+  status      ContentStatus @default(PUBLISHED)
+  authorId    Int      @map("author_id")
+  author      User     @relation(fields: [authorId], references: [id])
+  createdAt   DateTime @default(now()) @map("created_at")
+  updatedAt   DateTime @updatedAt @map("updated_at")
+
+  @@map("articles")
+}
+
+model VideoGallery {
+  id          Int      @id @default(autoincrement())
+  title       String
+  youtubeId   String   @map("youtube_id")
+  description String?  @db.Text
+  status      ContentStatus @default(PUBLISHED)
+  createdAt   DateTime @default(now()) @map("created_at")
+  updatedAt   DateTime @updatedAt @map("updated_at")
+
+  @@map("video_gallery")
+}
+
+model IkmStation {
+  id          Int      @id @default(autoincrement())
+  stationName String   @map("station_name")
+  ikmValue    Float    @map("ikm_value")
+  rating      String   @default("Sangat Baik")
+  updatedAt   DateTime @updatedAt @map("updated_at")
+
+  @@map("ikm_stations")
+}
+
+model ActivityLog {
+  id          Int      @id @default(autoincrement())
+  userId      Int      @map("user_id")
+  user        User     @relation(fields: [userId], references: [id])
+  action      String
+  target      String
+  details     String?  @db.Text
+  ipAddress   String?  @map("ip_address")
+  createdAt   DateTime @default(now()) @map("created_at")
+
+  @@map("activity_logs")
+}
+
+// Data request system for pelayanan data
+model DataRequest {
+  id              Int               @id @default(autoincrement())
+  userId          Int               @map("user_id")
+  user            User              @relation(fields: [userId], references: [id])
+  requestType     RequestType       @map("request_type")
+  status          RequestStatus     @default(SUBMITTED)
+  
+  // Common fields
+  fullName        String            @map("full_name")
+  email           String
+  phone           String?
+  address         String?           @db.Text
+
+  // Nol Rupiah specific fields
+  institution     String?
+  locationInfo    String?           @map("location_info") @db.Text
+  monthInfo       String?           @map("month_info")
+  ktpDocUrl       String?           @map("ktp_doc_url") @db.Text
+  introLetterUrl  String?           @map("intro_letter_url") @db.Text
+  statementUrl    String?           @map("statement_url") @db.Text
+  proposalUrl     String?           @map("proposal_url") @db.Text
+
+  // INFORMASI specific: surat permohonan upload
+  applicationLetterUrl String?      @map("application_letter_url") @db.Text
+
+  // Total for informasi type
+  totalAmount     Float?            @default(0) @map("total_amount")
+  
+  // DATIN fields: billing code from SIMPONI (15  digits)
+  billingCode     String?           @map("billing_code")
+
+  // Penanggung Jawab (person in charge) assigned by DATIN
+  penanggungJawab String?           @map("penanggung_jawab")
+  
+  // Payment proof upload by user
+  paymentProofUrl String?           @map("payment_proof_url") @db.Text
+  
+  // Data document uploaded by DATIN
+  dataDocumentUrl String?           @map("data_document_url") @db.Text
+
+  // SKM (Survei Kepuasan Masyarakat) 
+  skmRating       Int?              @map("skm_rating")
+  skmFeedback     String?           @map("skm_feedback") @db.Text
+  skmCompletedAt  DateTime?         @map("skm_completed_at")
+  
+  // Admin/DATIN notes
+  adminNotes      String?           @map("admin_notes") @db.Text
+  rejectionReason String?           @map("rejection_reason") @db.Text
+
+  // Timestamps
+  reviewedAt      DateTime?         @map("reviewed_at")
+  completedAt     DateTime?         @map("completed_at")
+  createdAt       DateTime          @default(now()) @map("created_at")
+  updatedAt       DateTime          @updatedAt @map("updated_at")
+
+  items           DataRequestItem[]
+  skmResponses    SkmResponse[]
+
+  @@map("data_requests")
+}
+
+model DataRequestItem {
+  id              Int          @id @default(autoincrement())
+  requestId       Int          @map("request_id")
+  request         DataRequest  @relation(fields: [requestId], references: [id], onDelete: Cascade)
+  serviceId       Int          @map("service_id")
+  serviceName     String       @map("service_name")
+  unit            String
+  pricePerUnit    Float        @map("price_per_unit")
+  quantity        Int          @default(1)
+  subtotal        Float        @default(0)
+
+  @@map("data_request_items")
+}
+
+// SKM Survey Questions - configurable by admin
+model SkmQuestion {
+  id          Int           @id @default(autoincrement())
+  code        String        @unique // e.g. "U1", "U2", etc.
+  question    String        @db.Text
+  category    String?       // e.g. "Prosedur", "Waktu", "Biaya", "Kompetensi"
+  orderIndex  Int           @default(0) @map("order_index")
+  isActive    Boolean       @default(true) @map("is_active")
+  createdAt   DateTime      @default(now()) @map("created_at")
+  updatedAt   DateTime      @updatedAt @map("updated_at")
+
+  responses   SkmResponse[]
+
+  @@map("skm_questions")
+}
+
+// SKM Survey Responses - per question per data request
+model SkmResponse {
+  id            Int           @id @default(autoincrement())
+  requestId     Int           @map("request_id")
+  request       DataRequest   @relation(fields: [requestId], references: [id], onDelete: Cascade)
+  questionId    Int           @map("question_id")
+  question      SkmQuestion   @relation(fields: [questionId], references: [id], onDelete: Cascade)
+  rating        Int           // 1-5 star rating
+  createdAt     DateTime      @default(now()) @map("created_at")
+
+  @@unique([requestId, questionId])
+  @@map("skm_responses")
+}
+
+enum Role {
+  USER
+  ADMIN
+  CONTENT
+  CONTENT_ADMIN
+  DATIN
+  PELAYANAN
+  @@map("role")
+}
+
+enum ContentStatus {
+  DRAFT
+  PENDING_REVIEW
+  PUBLISHED
+  ARCHIVED
+  @@map("content_status")
+}
+
+enum RequestType {
+  INFORMASI
+  NOL_RUPIAH
+  @@map("request_type")
+}
+
+enum RequestStatus {
+  SUBMITTED
+  REVIEWING
+  BILLING_ISSUED
+  PAYMENT_UPLOADED
+  PAYMENT_CONFIRMED
+  DATA_UPLOADED
+  SKM_PENDING
+  COMPLETED
+  REJECTED
+  @@map("request_status")
+}
