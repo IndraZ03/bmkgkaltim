@@ -12,7 +12,8 @@ import {
   CarouselPrevious,
 } from "@/components/ui/carousel";
 import { WeatherCard } from "@/components/weather/WeatherCard";
-import { useBMKGWeather, BALIKPAPAN_DISTRICTS } from "@/hooks/useBMKGWeather";
+import { useBMKGWeather } from "@/hooks/useBMKGWeather";
+import { ADM1_KALTIM, KAB_KOTA_KALTIM, KECAMATAN_KALTIM, getKabKotaName, getKecamatanName } from "@/lib/locations";
 import Autoplay from "embla-carousel-autoplay";
 import { useRef, useState, useEffect } from "react";
 import { LoaderFive } from "@/components/ui/loader";
@@ -49,10 +50,20 @@ export default function Home() {
   const [showHighlight, setShowHighlight] = useState(false);
   const [greeting, setGreeting] = useState("");
   const [greetingColor, setGreetingColor] = useState("text-blue-600");
-  const [selectedDistrictCode, setSelectedDistrictCode] = useState(BALIKPAPAN_DISTRICTS[2].code); // Default to Sepinggan (Airport)
+  const [selectedKabKota, setSelectedKabKota] = useState("64.71"); // Default: Kota Balikpapan
+  const [selectedKecamatan, setSelectedKecamatan] = useState("64.71.05"); // Default: Balikpapan Selatan
   
-  const { data: forecastData, loading: weatherLoading, error: weatherError } = useBMKGWeather(selectedDistrictCode);
-  const selectedDistrictName = BALIKPAPAN_DISTRICTS.find(d => d.code === selectedDistrictCode)?.name || "Balikpapan";
+  const { data: forecastData, loading: weatherLoading, error: weatherError } = useBMKGWeather(ADM1_KALTIM, selectedKabKota, selectedKecamatan);
+  const selectedKabKotaName = getKabKotaName(selectedKabKota);
+  const selectedKecamatanName = getKecamatanName(selectedKabKota, selectedKecamatan);
+
+  // Reset kecamatan when kab/kota changes
+  useEffect(() => {
+    const kecList = KECAMATAN_KALTIM[selectedKabKota];
+    if (kecList && kecList.length > 0) {
+      setSelectedKecamatan(kecList[0].code);
+    }
+  }, [selectedKabKota]);
 
   const plugin = useRef(
     Autoplay({ delay: 2000, stopOnInteraction: false, stopOnMouseEnter: false })
@@ -311,22 +322,35 @@ export default function Home() {
                 Prakiraan Cuaca
               </h2>
               <p className="text-lg text-gray-600">
-                Prakiraan cuaca 3 hari ke depan untuk wilayah Balikpapan
+                Prakiraan cuaca per jam untuk wilayah {selectedKecamatanName}, {selectedKabKotaName}
               </p>
               <p className={`text-xl font-medium mt-2 ${greetingColor}`}>
                 {greeting}
               </p>
               
-              <div className="mt-6 flex flex-col items-center justify-center">
-                <label className="block text-sm font-medium text-gray-700 mb-2">
-                  Pilih Lokasi (Kecamatan)
-                </label>
-                <SelectCustom 
-                  options={BALIKPAPAN_DISTRICTS.map(d => ({ label: d.name, value: d.code }))}
-                  value={selectedDistrictCode}
-                  onChange={setSelectedDistrictCode}
-                  className="w-full max-w-xs"
-                />
+              <div className="mt-6 flex flex-col sm:flex-row items-center justify-center gap-4">
+                <div className="w-full max-w-xs">
+                  <label className="block text-sm font-medium text-gray-700 mb-2">
+                    Pilih Kabupaten/Kota
+                  </label>
+                  <SelectCustom 
+                    options={KAB_KOTA_KALTIM.map(k => ({ label: k.name, value: k.code }))}
+                    value={selectedKabKota}
+                    onChange={setSelectedKabKota}
+                    className="w-full"
+                  />
+                </div>
+                <div className="w-full max-w-xs">
+                  <label className="block text-sm font-medium text-gray-700 mb-2">
+                    Pilih Kecamatan
+                  </label>
+                  <SelectCustom 
+                    options={(KECAMATAN_KALTIM[selectedKabKota] || []).map(k => ({ label: k.name, value: k.code }))}
+                    value={selectedKecamatan}
+                    onChange={setSelectedKecamatan}
+                    className="w-full"
+                  />
+                </div>
               </div>
             </div>
           </div>
@@ -344,7 +368,7 @@ export default function Home() {
                    <CarouselItem key={index} className="pl-2 md:pl-4 md:basis-1/2 lg:basis-1/3 xl:basis-1/4">
                      <div className="p-1">
                        <WeatherCard
-                         location={selectedDistrictName}
+                         location={`${selectedKecamatanName}, ${selectedKabKotaName}`}
                          data={weather}
                          loading={false}
                          error={null}

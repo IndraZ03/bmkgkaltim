@@ -11,8 +11,16 @@ const nextConfig: NextConfig = {
         protocol: "http",
         hostname: "**",
       },
+      {
+        protocol: 'http',
+        hostname: '202.90.198.22',
+        port: '',
+        pathname: '/IMAGE/HOTSPOT/**',
+      },
     ],
   },
 };
+
+
 
 export default nextConfig;
