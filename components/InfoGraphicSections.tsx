@@ -20,7 +20,7 @@ const hotspotItems: GraphicItem[] = [
   {
     id: "hotspot-1",
     title: "Peta Sebaran Titik Panas (Hotspot)",
-    imageUrl: "http://202.90.198.22/IMAGE/HOTSPOT/Hotspot_Kaltim.png",
+    imageUrl: "/api/proxied-images/HOTSPOT/Hotspot_Kaltim.png",
   },
   {
     id: "hotspot-2",
