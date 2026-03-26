@@ -36,7 +36,7 @@ const waveItems: GraphicItem[] = [
   {
     id: "wave-1",
     title: "Prakiraan Tinggi Gelombang",
-    imageUrl: "https://maritim.bmkg.go.id/render-static/inawave/2026/03/2026031312/metwilpro/kalimantan_timur/swh_2026031312.png",
+    imageUrl: "https://infomet.pusmar.id/public_api/video_wilpel/Kalimantan%20Timur.webm",
   },
   {
     id: "wave-2",
@@ -51,6 +51,8 @@ const waveItems: GraphicItem[] = [
 
 function ImageModal({ src, alt, onClose }: { src: string; alt: string; onClose: () => void }) {
   if (!src) return null;
+  const isVideo = src.endsWith('.webm') || src.endsWith('.mp4');
+
   return (
     <div className="fixed inset-0 z-[100] flex items-center justify-center p-4 bg-black/80 backdrop-blur-sm" onClick={onClose}>
       <button 
@@ -60,18 +62,31 @@ function ImageModal({ src, alt, onClose }: { src: string; alt: string; onClose: 
         <X size={32} />
       </button>
       <div className="relative max-w-5xl max-h-[90vh] w-full h-full flex items-center justify-center" onClick={(e) => e.stopPropagation()}>
-        {/* We use standard img tag for external sources to avoid domain config issues with dynamic/unsafe user links */}
-        <img 
-          src={src} 
-          alt={alt} 
-          className="max-w-full max-h-full object-contain rounded-lg shadow-2xl bg-white"
-        />
+        {isVideo ? (
+          <video 
+            src={src} 
+            className="max-w-full max-h-full object-contain rounded-lg shadow-2xl bg-black"
+            controls
+            autoPlay
+            loop
+            muted
+            playsInline
+          />
+        ) : (
+          <img 
+            src={src} 
+            alt={alt} 
+            className="max-w-full max-h-full object-contain rounded-lg shadow-2xl bg-white"
+          />
+        )}
       </div>
     </div>
   );
 }
 
 function GraphicCard({ item, onClick }: { item: GraphicItem; onClick: () => void }) {
+  const isVideo = item.imageUrl.endsWith('.webm') || item.imageUrl.endsWith('.mp4');
+
   return (
     <div 
       className="group relative bg-white rounded-xl shadow-md overflow-hidden border border-gray-100 hover:shadow-xl transition-all duration-300 cursor-pointer"
@@ -79,15 +94,25 @@ function GraphicCard({ item, onClick }: { item: GraphicItem; onClick: () => void
     >
       {/* Increased height by changing aspect ratio to square or larger */}
       <div className="relative aspect-square w-full bg-white overflow-hidden p-2">
-        {/* Standard img tag for flexibility with external unconfigured domains */}
-        <img 
-          src={item.imageUrl} 
-          alt={item.title} 
-          className="w-full h-full object-contain transition-transform duration-500 group-hover:scale-105"
-          onError={(e) => {
-            (e.target as HTMLImageElement).src = "https://placehold.co/600x400?text=Gambar+Tidak+Tersedia";
-          }}
-        />
+        {isVideo ? (
+          <video 
+            src={item.imageUrl} 
+            className="w-full h-full object-contain transition-transform duration-500 group-hover:scale-105"
+            autoPlay
+            loop
+            muted
+            playsInline
+          />
+        ) : (
+          <img 
+            src={item.imageUrl} 
+            alt={item.title} 
+            className="w-full h-full object-contain transition-transform duration-500 group-hover:scale-105"
+            onError={(e) => {
+              (e.target as HTMLImageElement).src = "https://placehold.co/600x400?text=Gambar+Tidak+Tersedia";
+            }}
+          />
+        )}
         <div className="absolute inset-0 bg-black/0 group-hover:bg-black/20 transition-colors duration-300 flex items-center justify-center opacity-0 group-hover:opacity-100">
            <div className="bg-white/90 rounded-full p-3 shadow-lg transform scale-90 group-hover:scale-100 transition-transform">
              <ZoomIn className="text-blue-600 w-6 h-6" />
@@ -140,82 +165,6 @@ export function HotspotSection() {
 
 export function WaveForecastSection() {
   const [selectedImage, setSelectedImage] = useState<string | null>(null);
-  const [waveImageUrl, setWaveImageUrl] = useState<string>(
-    "https://maritim.bmkg.go.id/render-static/inawave/2026/03/2026031312/metwilpro/kalimantan_timur/swh_2026031312.png"
-  );
-
-  useEffect(() => {
-    let isMounted = true;
-
-    const findLatestImage = async () => {
-      const now = new Date();
-      const candidates: { folder: string, file: string }[] = [];
-      
-      // Generate candidates for the last 3 days (12 and 00 runs)
-      for (let i = 0; i < 4; i++) {
-        const d = new Date(now.getTime() - i * 24 * 60 * 60 * 1000);
-        const year = d.getFullYear().toString();
-        const month = String(d.getMonth() + 1).padStart(2, "0");
-        const day = String(d.getDate()).padStart(2, "0");
-        
-        const nextDay = new Date(d.getTime() + 24 * 60 * 60 * 1000);
-        const nextYear = nextDay.getFullYear().toString();
-        const nextMonth = String(nextDay.getMonth() + 1).padStart(2, "0");
-        const nextDate = String(nextDay.getDate()).padStart(2, "0");
-
-        candidates.push({
-          folder: `${year}${month}${day}12`,
-          file: `${nextYear}${nextMonth}${nextDate}12`
-        });
-        candidates.push({
-          folder: `${year}${month}${day}00`,
-          file: `${nextYear}${nextMonth}${nextDate}00`
-        });
-      }
-      
-      // Sort descending so we check the most recent dates first
-      candidates.sort((a, b) => b.folder.localeCompare(a.folder));
-
-      for (const item of candidates) {
-        if (!isMounted) break;
-        const c = item.folder;
-        const f = item.file;
-        const year = c.slice(0, 4);
-        const month = c.slice(4, 6);
-        const url = `https://maritim.bmkg.go.id/render-static/inawave/${year}/${month}/${c}/metwilpro/kalimantan_timur/swh_${f}.png`;
-        
-        const success = await new Promise((resolve) => {
-          const img = new window.Image();
-          img.onload = () => resolve(true);
-          img.onerror = () => resolve(false);
-          img.src = url;
-        });
-
-        if (success && isMounted) {
-          setWaveImageUrl(url);
-          break;
-        }
-      }
-    };
-
-    findLatestImage();
-    
-    return () => { isMounted = false; };
-  }, []);
-
-  const waveItemsFiltered = [
-    {
-      id: "wave-1",
-      title: "Prakiraan Tinggi Gelombang",
-      imageUrl: waveImageUrl,
-    },
-    {
-       // Strictly following user instruction to put this image in the "Wave" section group 
-       id: "hotspot-extra",
-       title: "Prakiraan Cuaca Pelabuhan", 
-       imageUrl: "https://maritim.bmkg.go.id/api/download/eyJjb2RlIjoiUC5ZLjA1IiwidHlwZSI6InBuZyIsImNhdGVnb3J5IjoicGVyYWlyYW4iLCJ0aW1lc3RhbXAiOjE3NzM0NDc1MTMyODksImhhc2giOiI2MDg5ZjkwMDQ4ZmFiMDAwIn0",
-    }
-  ];
 
   return (
     <>
@@ -228,7 +177,7 @@ export function WaveForecastSection() {
             <div className="h-1 w-24 bg-blue-600 mx-auto rounded-full"></div>
           </div>
            <div className="grid grid-cols-1 md:grid-cols-2 gap-8 max-w-4xl mx-auto">
-             {waveItemsFiltered.map(item => (
+             {waveItems.map(item => (
                 <GraphicCard 
                   key={item.id} 
                   item={item} 
