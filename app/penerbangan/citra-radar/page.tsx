@@ -17,6 +17,7 @@ export default function CitraRadarPage() {
   const [currentTime, setCurrentTime] = useState<{ utc: string; wita: string }>({ utc: "", wita: "" });
   const [imageTimestamp, setImageTimestamp] = useState<number | null>(null);
   const [selectedImage, setSelectedImage] = useState<string | null>(null);
+  const [radarUpdates, setRadarUpdates] = useState<Record<string, any>>({});
 
   useEffect(() => {
     const updateTime = () => {
@@ -34,36 +35,55 @@ export default function CitraRadarPage() {
   }, []);
 
   useEffect(() => {
+    // Fetch info about last generated images from DB
+    const fetchUpdates = async () => {
+      try {
+        const res = await fetch("/api/radar/list");
+        if (res.ok) {
+          const data = await res.json();
+          const updates: Record<string, any> = {};
+          data.forEach((item: any) => {
+            updates[item.type] = item;
+          });
+          setRadarUpdates(updates);
+        }
+      } catch (e) {
+        console.error("Failed to fetch radar updates", e);
+      }
+    };
+
     // Set initial timestamp on mount (client-side only) to avoid hydration mismatch
     setImageTimestamp(Date.now());
+    fetchUpdates();
     
-    // Refresh images every 1 minute
+    // Refresh images and metadata every 1 minute
     const interval = setInterval(() => {
       setImageTimestamp(Date.now());
+      fetchUpdates();
     }, 60000);
     return () => clearInterval(interval);
   }, []);
 
   const slideData = [
     {
+      id: "CMAX_Balikpapan",
       title: "CMAX (Column Max)",
-      description: "Produk CMAX menampilkan nilai reflektivitas maksimum dalam kolom vertikal. Informasi ini berguna untuk mengidentifikasi intensitas curah hujan tertinggi di suatu wilayah, yang dapat mengindikasikan potensi cuaca buruk seperti badai guntur atau hujan lebat.",
-      src: "http://172.19.1.142/IMAGE/CMAX_Balikpapan.png", 
+      description: "Produk CMAX menampilkan nilai reflektivitas maksimum dalam kolom vertikal. Informasi ini berguna untuk mengidentifikasi intensitas curah hujan tertinggi di suatu wilayah, yang dapat mengindikasikan potensi cuaca buruk seperti badai guntur atau hujan lebat."
     },
     {
+      id: "CMAX-HWIND_Balikpapan",
       title: "HWIND 0.5 km",
-      description: "Produk HWIND 0.5 km menyajikan informasi kecepatan dan arah angin horizontal pada ketinggian 0.5 km. Data ini penting untuk analisis pola angin permukaan dan potensi pergeseran awan di lapisan rendah atmosfer.",
-      src: "http://172.19.1.142/IMAGE/CMAX-HWIND_Balikpapan.png",
+      description: "Produk HWIND 0.5 km menyajikan informasi kecepatan dan arah angin horizontal pada ketinggian 0.5 km. Data ini penting untuk analisis pola angin permukaan dan potensi pergeseran awan di lapisan rendah atmosfer."
     },
     {
+      id: "PAC06H_Balikpapan",
       title: "PAC 6h",
-      description: "Produk PAC 6h menunjukkan estimasi akumulasi curah hujan selama 6 jam terakhir. Informasi ini membantu dalam pemantauan potensi banjir dan evaluasi distribusi hujan jangka pendek.",
-      src: "http://172.19.1.142/IMAGE/PAC06H_Balikpapan.png",
+      description: "Produk PAC 6h menunjukkan estimasi akumulasi curah hujan selama 6 jam terakhir. Informasi ini membantu dalam pemantauan potensi banjir dan evaluasi distribusi hujan jangka pendek."
     },
     {
+      id: "PAC24H_Balikpapan",
       title: "PAC 24h",
-      description: "Produk PAC 24h memberikan gambaran akumulasi curah hujan selama 24 jam terakhir. Data ini sangat vital untuk analisis hidrologi, peringatan dini banjir, dan pemahaman tren curah hujan harian.",
-      src: "http://172.19.1.142/IMAGE/PAC24H_Balikpapan.png",
+      description: "Produk PAC 24h memberikan gambaran akumulasi curah hujan selama 24 jam terakhir. Data ini sangat vital untuk analisis hidrologi, peringatan dini banjir, dan pemahaman tren curah hujan harian."
     },
   ];
 
@@ -112,24 +132,38 @@ export default function CitraRadarPage() {
           className="w-full"
         >
           <CarouselContent className="-ml-4">
-            {slideData.map((slide, index) => (
+            {slideData.map((slide, index) => {
+              const radarInfo = radarUpdates[slide.id];
+              const src = radarInfo ? `/api/radar/image/${radarInfo.filename}` : `/api/radar/image/${slide.id}.png`;
+              // Format updated time nicely
+              let updatedTimeDisplay = "Belum ada pembaruan";
+              if (radarInfo && radarInfo.updatedAt) {
+                const updatedDate = new Date(radarInfo.updatedAt);
+                updatedTimeDisplay = "Diperbarui: " + updatedDate.toLocaleTimeString("id-ID", { timeZone: "Asia/Makassar", hour: '2-digit', minute: '2-digit' }).replace(':', '.') + " WITA (" + updatedDate.toLocaleDateString("id-ID", { timeZone: "Asia/Makassar" }) + ")";
+              }
+
+              return (
               <CarouselItem key={index} className="pl-4 basis-full">
                 <div className="h-full">
                   <Card className="overflow-hidden border-0 shadow-xl rounded-2xl h-full bg-white dark:bg-gray-900">
                     <CardContent className="flex flex-col p-0 h-full">
                        <div className="relative w-full bg-gray-50 overflow-hidden group border-b border-gray-100">
-                         {/* Use standard img for internal IP and add refreshing timestamp */}
                          <img 
-                            src={imageTimestamp ? `${slide.src}?t=${imageTimestamp}` : slide.src}
+                            src={imageTimestamp ? `${src}?t=${imageTimestamp}` : src}
                             alt={slide.title} 
-                            onClick={() => setSelectedImage(slide.src)}
+                            onClick={() => setSelectedImage(src)}
                             className="w-full h-[450px] object-contain transition-transform duration-500 group-hover:scale-105 cursor-zoom-in"
                           />
                        </div>
                        <div className="p-6 md:p-8">
-                          <h3 className="text-2xl font-bold mb-3 text-gray-900 dark:text-gray-100 group-hover:text-blue-600 transition-colors">
-                            {slide.title}
-                          </h3>
+                          <div className="flex flex-col xl:flex-row xl:justify-between xl:items-center mb-3 gap-2">
+                            <h3 className="text-2xl font-bold text-gray-900 dark:text-gray-100 group-hover:text-blue-600 transition-colors">
+                              {slide.title}
+                            </h3>
+                            <span className="inline-block w-fit bg-blue-50 dark:bg-gray-800 border border-blue-100 dark:border-gray-700 px-3 py-1 rounded-full text-xs font-semibold text-blue-700 dark:text-blue-400 font-mono shadow-sm">
+                              {updatedTimeDisplay}
+                            </span>
+                          </div>
                           <p className="text-gray-600 dark:text-gray-300 leading-relaxed text-base">
                             {slide.description}
                           </p>
@@ -138,7 +172,7 @@ export default function CitraRadarPage() {
                   </Card>
                 </div>
               </CarouselItem>
-            ))}
+            )})}
           </CarouselContent>
           <div className="hidden md:block">
             <CarouselPrevious className="-left-12 h-12 w-12 border-2" />

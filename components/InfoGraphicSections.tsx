@@ -133,15 +133,15 @@ export function HotspotSection() {
 
   return (
     <>
-      <section className="py-12 bg-white border-b border-gray-100">
+      <section className="py-8 md:py-12 bg-white border-b border-gray-100">
         <div className="container mx-auto px-4 max-w-7xl">
-          <div className="text-center mb-10">
-            <h2 className="text-2xl md:text-3xl font-bold text-gray-900 mb-2">
+          <div className="text-center mb-6 md:mb-10">
+            <h2 className="text-xl md:text-3xl font-bold text-gray-900 mb-2">
               Peta Sebaran Titik Panas & Potensi Kebakaran Hutan
             </h2>
-            <div className="h-1 w-24 bg-red-500 mx-auto rounded-full"></div>
+            <div className="h-1 w-16 md:w-24 bg-red-500 mx-auto rounded-full"></div>
           </div>
-          <div className="grid grid-cols-1 md:grid-cols-2 gap-8 max-w-4xl mx-auto">
+          <div className="grid grid-cols-1 md:grid-cols-2 gap-6 md:gap-8 max-w-4xl mx-auto">
              {hotspotItems.map(item => (
                 <GraphicCard 
                   key={item.id} 
@@ -168,15 +168,15 @@ export function WaveForecastSection() {
 
   return (
     <>
-      <section className="py-12 bg-blue-50/50">
+      <section className="py-8 md:py-12 bg-blue-50/50">
         <div className="container mx-auto px-4 max-w-7xl">
-          <div className="text-center mb-10">
-            <h2 className="text-2xl md:text-3xl font-bold text-gray-900 mb-2">
+          <div className="text-center mb-6 md:mb-10">
+            <h2 className="text-xl md:text-3xl font-bold text-gray-900 mb-2">
               Prakiraan Cuaca Maritim
             </h2>
-            <div className="h-1 w-24 bg-blue-600 mx-auto rounded-full"></div>
+            <div className="h-1 w-16 md:w-24 bg-blue-600 mx-auto rounded-full"></div>
           </div>
-           <div className="grid grid-cols-1 md:grid-cols-2 gap-8 max-w-4xl mx-auto">
+           <div className="grid grid-cols-1 md:grid-cols-2 gap-6 md:gap-8 max-w-4xl mx-auto">
              {waveItems.map(item => (
                 <GraphicCard 
                   key={item.id} 
@@ -200,18 +200,18 @@ export function WaveForecastSection() {
 
 export function ClimateInfoSection() {
   return (
-    <section className="py-16 bg-white border-t border-gray-100">
+    <section className="py-10 md:py-16 bg-white border-t border-gray-100">
       <div className="container mx-auto px-4 max-w-7xl">
-        <div className="text-center mb-10">
-          <h2 className="text-2xl md:text-3xl font-bold text-gray-900 mb-2">
+        <div className="text-center mb-6 md:mb-10">
+          <h2 className="text-xl md:text-3xl font-bold text-gray-900 mb-2">
             Prediksi Curah Hujan Dasarian
           </h2>
-          <div className="h-1 w-24 bg-green-500 mx-auto rounded-full"></div>
+          <div className="h-1 w-16 md:w-24 bg-green-500 mx-auto rounded-full"></div>
         </div>
         
         <div className="w-full max-w-5xl mx-auto bg-white rounded-xl shadow-lg border border-gray-200 overflow-hidden">
              {/* Iframe Widget */}
-             <div className="relative w-full h-[350px]">
+             <div className="relative w-full h-[250px] sm:h-[350px]">
                <iframe 
                  src="https://www.bmkgsamarinda.com/view/hh-hth-map-widget.php#" 
                  title="Peta Info Iklim"

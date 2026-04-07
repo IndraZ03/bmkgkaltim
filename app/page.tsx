@@ -34,12 +34,6 @@ import { VideoSection } from "@/components/VideoSection";
 import { HotspotSection, WaveForecastSection, ClimateInfoSection } from "@/components/InfoGraphicSections";
 
 
-
-
-
-
-
-
 function EarthquakeWrapper() {
   const { data, loading, error } = useBMKGEarthquake();
   return <EarthquakeCard data={data} loading={loading} error={error} />;
@@ -100,7 +94,7 @@ export default function Home() {
     // Simulate initial loading time for the app shell
     const timer = setTimeout(() => {
       setIsLoading(false);
-    }, 500); // Reduced slightly as we have real data loading too
+    }, 500);
 
     return () => clearTimeout(timer);
   }, []);
@@ -116,17 +110,17 @@ export default function Home() {
   const displayedForecast = forecastData.slice(0, 24);
 
   return (
-    <div className="min-h-screen bg-white font-sans text-gray-900">
+    <div className="min-h-screen bg-white font-sans text-gray-900 overflow-x-hidden">
       <Header />
       
       {/* Spacer for fixed Header & Alert Banner Area */}
-      <div className="pt-[88px]">
+      <div className="pt-[72px] sm:pt-[88px]">
         <WeatherAlertBanner />
       </div>
 
       {/* Hero Section */}
-      <section className="relative pt-8 pb-16 min-h-[85vh] flex flex-col justify-center items-center text-center px-4 bg-[url('/background.png')] bg-cover bg-center text-white overflow-hidden">
-        {/* Floating Decorations */}
+      <section className="relative pt-6 sm:pt-8 pb-10 sm:pb-16 min-h-[65vh] sm:min-h-[85vh] flex flex-col justify-center items-center text-center px-4 bg-[url('/background.png')] bg-cover bg-center text-white overflow-hidden">
+        {/* Floating Decorations - Hidden on mobile */}
         <motion.img
           src="/weatherstation.png"
           alt="Aplikasi"
@@ -191,7 +185,7 @@ export default function Home() {
              </div>
         </div>
 
-        <div className="w-full max-w-7xl space-y-12 flex flex-col items-center relative z-10">
+        <div className="w-full max-w-7xl space-y-6 sm:space-y-12 flex flex-col items-center relative z-10">
          
           
           {/* Main Greeting - Centered */}
@@ -203,31 +197,31 @@ export default function Home() {
           >
             
             
-            <div className="text-4xl md:text-6xl font-bold text-white mb-2 flex flex-wrap justify-center gap-2 md:gap-3 leading-normal items-center">
+            <div className="text-2xl sm:text-4xl md:text-6xl font-bold text-white mb-2 flex flex-wrap justify-center gap-1.5 sm:gap-2 md:gap-3 leading-normal items-center">
                <span className="drop-shadow-md">Halo</span>
                <LayoutTextFlip
                 text=""
                 words={["Bubuhan Metam!", "Sobat Metam!"]}
                 className="text-white"
-                flipClassName="text-white border border-white/50 rounded-xl px-4 py-2 bg-white/10 backdrop-blur-sm shadow-sm"
+                flipClassName="text-white border border-white/50 rounded-lg sm:rounded-xl px-2.5 sm:px-4 py-1 sm:py-2 bg-white/10 backdrop-blur-sm shadow-sm text-2xl sm:text-4xl md:text-6xl"
               />
             </div>
           </motion.div>
 
           {/* Welcome Text - TextGenerateEffect */}
-          <div className="w-full max-w-4xl mx-auto">
+          <div className="w-full max-w-4xl mx-auto px-2">
             <TextGenerateEffect
               words={`Selamat Datang
  di Badan Meteorologi, Klimatologi dan Geofisika Wilayah Provinsi Kalimantan Timur`}
-              className="text-xl md:text-2xl font-semibold leading-relaxed text-white text-center"
+              className="text-base sm:text-xl md:text-2xl font-semibold leading-relaxed text-white text-center"
             />
           </div>
 
           {/* Mission Statements - TypewriterEffectSmooth */}
-          <div className="w-full flex flex-col items-center gap-8 mt-1 overflow-hidden">
+          <div className="w-full flex flex-col items-center gap-4 sm:gap-8 mt-1 overflow-hidden px-2">
              <div className="max-w-5xl">
                {showHighlight ? (
-                 <div className="text-base text-white/90 font-normal leading-relaxed tracking-wide">
+                 <div className="text-sm sm:text-base text-white/90 font-normal leading-relaxed tracking-wide">
                    Pelayanan informasi Meteorologi, Klimatologi dan Geofisika secara{" "}
                    <Highlight className="text-black">luas</Highlight>,{" "}
                    <Highlight className="text-black">cepat</Highlight>,{" "}
@@ -253,15 +247,15 @@ export default function Home() {
                       { text: "mudah " },
                       { text: "dipahami" },
                     ]}
-                    className="text-base text-white/90 font-normal leading-relaxed tracking-wide"
-                    cursorClassName="bg-blue-500 h-5 md:h-7"
+                    className="text-sm sm:text-base text-white/90 font-normal leading-relaxed tracking-wide"
+                    cursorClassName="bg-blue-500 h-4 sm:h-5 md:h-7"
                  />
                )}
              </div>
 
              <div className="max-w-5xl">
                {showHighlight ? (
-                 <div className="text-base text-white/90 font-normal leading-relaxed tracking-wide">
+                 <div className="text-sm sm:text-base text-white/90 font-normal leading-relaxed tracking-wide">
                    Menuju Wilayah Bebas Korupsi <Highlight className="text-black">(WBK)</Highlight> dan Wilayah Birokrasi Bersih dan Melayani <Highlight className="text-black">(WBBM)</Highlight>
                  </div>
                ) : (
@@ -280,31 +274,28 @@ export default function Home() {
                       { text: "Melayani " },
                       { text: "(WBBM)" },
                     ]}
-                    className="text-base text-white/90 font-normal leading-relaxed tracking-wide"
-                    cursorClassName="bg-green-500 h-5 md:h-7"
+                    className="text-sm sm:text-base text-white/90 font-normal leading-relaxed tracking-wide"
+                    cursorClassName="bg-green-500 h-4 sm:h-5 md:h-7"
                  />
                )}
              </div>
           </div>
 
-
-
         </div>
       </section>
-
 
 
       {/* IKM Section */}
       <IKMSection />
 
        {/* Earthquake Section */}
-      <section className="py-16 px-4 bg-gray-50">
+      <section className="py-10 sm:py-16 px-4 bg-gray-50">
         <div className="container mx-auto max-w-6xl">
-          <div className="text-center mb-12">
-            <h2 className="text-3xl font-bold text-gray-900 mb-4">
+          <div className="text-center mb-8 sm:mb-12">
+            <h2 className="text-2xl sm:text-3xl font-bold text-gray-900 mb-3 sm:mb-4">
               Informasi Gempa Bumi Terkini
             </h2>
-            <p className="text-gray-600">
+            <p className="text-sm sm:text-base text-gray-600">
               Data gempa bumi terkini (M ≥ 5.0) yang dirasakan dari BMKG
             </p>
           </div>
@@ -314,23 +305,23 @@ export default function Home() {
       </section>
 
       {/* Weather Section */}
-      <section className="py-16 px-4 bg-white">
+      <section className="py-10 sm:py-16 px-4 bg-white">
         <div className="container mx-auto max-w-7xl">
-          <div className="flex flex-col items-center justify-center text-center mb-12 gap-6">
+          <div className="flex flex-col items-center justify-center text-center mb-8 sm:mb-12 gap-4 sm:gap-6">
             <div className="w-full max-w-2xl">
-              <h2 className="text-4xl font-bold text-gray-900 mb-2">
+              <h2 className="text-2xl sm:text-4xl font-bold text-gray-900 mb-2">
                 Prakiraan Cuaca
               </h2>
-              <p className="text-lg text-gray-600">
+              <p className="text-sm sm:text-lg text-gray-600">
                 Prakiraan cuaca per jam untuk wilayah {selectedKecamatanName}, {selectedKabKotaName}
               </p>
-              <p className={`text-xl font-medium mt-2 ${greetingColor}`}>
+              <p className={`text-base sm:text-xl font-medium mt-2 ${greetingColor}`}>
                 {greeting}
               </p>
               
-              <div className="mt-6 flex flex-col sm:flex-row items-center justify-center gap-4">
-                <div className="w-full max-w-xs">
-                  <label className="block text-sm font-medium text-gray-700 mb-2">
+              <div className="mt-4 sm:mt-6 flex flex-col sm:flex-row items-stretch sm:items-center justify-center gap-3 sm:gap-4">
+                <div className="w-full sm:max-w-xs">
+                  <label className="block text-xs sm:text-sm font-medium text-gray-700 mb-1.5 sm:mb-2">
                     Pilih Kabupaten/Kota
                   </label>
                   <SelectCustom 
@@ -340,8 +331,8 @@ export default function Home() {
                     className="w-full"
                   />
                 </div>
-                <div className="w-full max-w-xs">
-                  <label className="block text-sm font-medium text-gray-700 mb-2">
+                <div className="w-full sm:max-w-xs">
+                  <label className="block text-xs sm:text-sm font-medium text-gray-700 mb-1.5 sm:mb-2">
                     Pilih Kecamatan
                   </label>
                   <SelectCustom 
@@ -365,7 +356,7 @@ export default function Home() {
              >
                <CarouselContent className="-ml-2 md:-ml-4">
                  {displayedForecast.map((weather, index) => (
-                   <CarouselItem key={index} className="pl-2 md:pl-4 md:basis-1/2 lg:basis-1/3 xl:basis-1/4">
+                   <CarouselItem key={index} className="pl-2 md:pl-4 basis-[85%] sm:basis-1/2 md:basis-1/2 lg:basis-1/3 xl:basis-1/4">
                      <div className="p-1">
                        <WeatherCard
                          location={`${selectedKecamatanName}, ${selectedKabKotaName}`}
@@ -383,15 +374,15 @@ export default function Home() {
           )}
           
           {weatherLoading && (
-            <div className="min-h-[400px] flex items-center justify-center">
+            <div className="min-h-[300px] sm:min-h-[400px] flex items-center justify-center">
                <LoaderFive text="Memuat Data Cuaca..." />
             </div>
           )}
 
           {weatherError && (
-            <div className="min-h-[300px] flex flex-col items-center justify-center text-center p-8 bg-red-50 rounded-xl border border-red-100">
+            <div className="min-h-[200px] sm:min-h-[300px] flex flex-col items-center justify-center text-center p-6 sm:p-8 bg-red-50 rounded-xl border border-red-100">
               <p className="text-red-500 font-semibold mb-2">Terjadi Kesalahan</p>
-              <p className="text-red-400">{weatherError}</p>
+              <p className="text-red-400 text-sm">{weatherError}</p>
             </div>
           )}
 

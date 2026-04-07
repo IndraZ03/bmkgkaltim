@@ -1,39 +1,42 @@
 "use client"
 
 import { useSession } from "next-auth/react"
-import { useRouter } from "next/navigation"
-import { useState } from "react"
+import { useRouter, useSearchParams } from "next/navigation"
+import { useState, useEffect, Suspense } from "react"
 import { Button } from "@/components/ui/button"
-import { ArrowLeft, ShoppingCart, Plus, Minus, Trash2, Loader2, CheckCircle2, Info, UploadCloud } from "lucide-react"
+import { ArrowLeft, ShoppingCart, Plus, Minus, Trash2, Loader2, CheckCircle2, Info, UploadCloud, Building2, AlertTriangle } from "lucide-react"
 import Link from "next/link"
 import { Input } from "@/components/ui/input"
 import { Label } from "@/components/ui/label"
 
-const SERVICES = [
-  { id: 1, layanan: "Informasi Cuaca untuk Pelayaran", satuan: "per route unit", tarif: 250000 },
-  { id: 2, layanan: "Informasi Cuaca untuk Pelabuhan", satuan: "per lokasi per hari", tarif: 225000 },
-  { id: 3, layanan: "Informasi Cuaca untuk Pengeboran Lepas Pantai", satuan: "per dokumen per hari per lokasi", tarif: 330000 },
-  { id: 4, layanan: "Analisa & Prakiraan Hujan Bulanan - Data Unsur Cuaca", satuan: "per buku", tarif: 65000 },
-  { id: 5, layanan: "Prakiraan Musim Kemarau", satuan: "per buku", tarif: 230000 },
-  { id: 6, layanan: "Prakiraan Musim Hujan", satuan: "per buku", tarif: 230000 },
-  { id: 7, layanan: "Informasi MKG untuk Klaim Asuransi - Informasi Meteorologi", satuan: "per lokasi per hari", tarif: 175000 },
-  { id: 8, layanan: "Informasi Cuaca Khusus untuk Kegiatan Olah Raga", satuan: "per lokasi per hari", tarif: 100000 },
-  { id: 9, layanan: "Informasi Cuaca Khusus untuk kegiatan komersil outdoor/indoor", satuan: "per lokasi per hari", tarif: 100000 },
-  { id: 10, layanan: "Informasi Radar Cuaca - per 10 menit", satuan: "per data per lokasi", tarif: 70000 },
-  { id: 11, layanan: "Informasi Iklim Maritim - Peta Spasial Informasi Maritim", satuan: "per peta per bulan", tarif: 300000 },
-  { id: 12, layanan: "Informasi Iklim Maritim - Informasi Tabular dan Grafik Maritim", satuan: "per tabel per bulan", tarif: 350000 },
-  { id: 13, layanan: "Jasa Konsultasi Meteorologi - Informasi Meteorologi Khusus untuk Pendukung Kegiatan Proyek, Survei dan Penelitian Komersil", satuan: "per lokasi", tarif: 3750000 },
-  { id: 14, layanan: "Jasa Konsultasi Klimatologi - Analisa Iklim", satuan: "per lokasi", tarif: 9500000 },
-]
+interface StationService {
+  id: number
+  layanan: string
+  satuan: string
+  tarif: number
+  stationId: number
+}
+
+interface Station {
+  id: number
+  name: string
+  code: string
+}
 
 interface CartItem {
-  service: typeof SERVICES[0]
+  service: StationService
   quantity: number
 }
 
-export default function PermohonanInformasiPage() {
+function PermohonanInformasiContent() {
   const { data: session } = useSession()
   const router = useRouter()
+  const searchParams = useSearchParams()
+  const stationId = searchParams.get("stationId")
+
+  const [station, setStation] = useState<Station | null>(null)
+  const [services, setServices] = useState<StationService[]>([])
+  const [loadingServices, setLoadingServices] = useState(true)
   const [cart, setCart] = useState<CartItem[]>([])
   const [submitting, setSubmitting] = useState(false)
   const [success, setSuccess] = useState(false)
@@ -41,7 +44,33 @@ export default function PermohonanInformasiPage() {
   const [applicationFile, setApplicationFile] = useState<File | null>(null)
   const [uploading, setUploading] = useState(false)
 
-  const addToCart = (service: typeof SERVICES[0]) => {
+  useEffect(() => {
+    if (!stationId) {
+      router.push("/pelayanan")
+      return
+    }
+
+    // Fetch station info
+    fetch("/api/stations")
+      .then(res => res.json())
+      .then(data => {
+        if (Array.isArray(data)) {
+          const found = data.find((s: Station) => s.id === parseInt(stationId))
+          if (found) setStation(found)
+        }
+      })
+
+    // Fetch services for this station
+    fetch(`/api/station-services?stationId=${stationId}`)
+      .then(res => res.json())
+      .then(data => {
+        if (Array.isArray(data)) setServices(data)
+        setLoadingServices(false)
+      })
+      .catch(() => setLoadingServices(false))
+  }, [stationId, router])
+
+  const addToCart = (service: StationService) => {
     const existing = cart.find(c => c.service.id === service.id)
     if (existing) {
       setCart(cart.map(c => 
@@ -78,6 +107,10 @@ export default function PermohonanInformasiPage() {
       setError("Mohon upload Surat Permohonan terlebih dahulu")
       return
     }
+    if (!stationId) {
+      setError("Stasiun tujuan belum dipilih")
+      return
+    }
 
     setSubmitting(true)
     setError("")
@@ -105,6 +138,7 @@ export default function PermohonanInformasiPage() {
         headers: { "Content-Type": "application/json" },
         body: JSON.stringify({
           requestType: "INFORMASI",
+          stationId: parseInt(stationId),
           fullName: session?.user?.name || "",
           email: session?.user?.email || "",
           applicationLetterUrl,
@@ -142,8 +176,8 @@ export default function PermohonanInformasiPage() {
             <CheckCircle2 className="h-10 w-10 text-emerald-600" />
           </div>
           <h2 className="text-2xl font-bold text-gray-900 mb-2">Permohonan Berhasil!</h2>
-          <p className="text-gray-500 mb-4">
-            Permohonan data informasi Anda telah dikirim. Kami akan memprosesnya segera.
+          <p className="text-gray-500 mb-2">
+            Permohonan data informasi Anda telah dikirim ke {station?.name || "stasiun tujuan"}.
           </p>
           <p className="text-lg font-bold text-emerald-600 mb-6">
             Total: Rp {totalAmount.toLocaleString("id-ID")}
@@ -161,11 +195,24 @@ export default function PermohonanInformasiPage() {
         <Link href="/pelayanan" className="p-2 text-gray-400 hover:text-gray-600 hover:bg-gray-100 rounded-lg transition-colors">
           <ArrowLeft className="h-5 w-5" />
         </Link>
-        <div>
+        <div className="flex-1">
           <h1 className="text-2xl font-bold text-gray-900">Permohonan Data Informasi</h1>
           <p className="text-gray-500 text-sm">Pilih layanan informasi yang Anda butuhkan</p>
         </div>
       </div>
+
+      {/* Station Indicator */}
+      {station && (
+        <div className="bg-gradient-to-r from-blue-50 to-indigo-50 border border-blue-200 rounded-xl p-4 flex items-center gap-3">
+          <div className="w-10 h-10 bg-blue-100 rounded-lg flex items-center justify-center flex-shrink-0">
+            <Building2 className="h-5 w-5 text-blue-600" />
+          </div>
+          <div>
+            <p className="text-sm font-semibold text-blue-900">Stasiun Tujuan</p>
+            <p className="text-xs text-blue-700">{station.name}</p>
+          </div>
+        </div>
+      )}
 
       <div className="grid grid-cols-1 lg:grid-cols-3 gap-6">
         {/* Service List */}
@@ -178,37 +225,54 @@ export default function PermohonanInformasiPage() {
             </p>
           </div>
 
-          {SERVICES.map((service) => (
-            <div key={service.id} className="bg-white rounded-xl border shadow-sm p-5 hover:shadow-md transition-shadow">
-              <div className="flex items-start justify-between gap-4">
-                <div className="flex-1">
-                  <h3 className="font-semibold text-gray-900 text-sm leading-relaxed mb-1">
-                    {service.layanan}
-                  </h3>
-                  <p className="text-xs text-gray-500">{service.satuan}</p>
-                  <p className="text-lg font-bold text-blue-600 mt-2">
-                    Rp {service.tarif.toLocaleString("id-ID")}
-                  </p>
-                </div>
-                <div className="flex-shrink-0">
-                  {isInCart(service.id) ? (
-                    <span className="inline-flex items-center gap-1 px-3 py-1.5 bg-emerald-100 text-emerald-700 rounded-lg text-xs font-medium">
-                      <CheckCircle2 className="h-3.5 w-3.5" />
-                      Ditambahkan
-                    </span>
-                  ) : (
-                    <button
-                      onClick={() => addToCart(service)}
-                      className="inline-flex items-center gap-1.5 px-4 py-2 bg-blue-600 hover:bg-blue-700 text-white rounded-lg text-sm font-medium transition-colors"
-                    >
-                      <Plus className="h-4 w-4" />
-                      Tambah
-                    </button>
-                  )}
-                </div>
+          {loadingServices ? (
+            <div className="flex items-center justify-center py-12">
+              <div className="flex flex-col items-center gap-3">
+                <Loader2 className="h-8 w-8 text-blue-600 animate-spin" />
+                <p className="text-sm text-gray-500">Memuat layanan...</p>
               </div>
             </div>
-          ))}
+          ) : services.length === 0 ? (
+            <div className="bg-amber-50 border border-amber-200 rounded-xl p-6 text-center">
+              <AlertTriangle className="h-10 w-10 text-amber-500 mx-auto mb-3" />
+              <h3 className="font-semibold text-amber-800 mb-1">Belum Ada Layanan</h3>
+              <p className="text-sm text-amber-700">
+                Stasiun ini belum memiliki layanan yang tersedia. Silakan hubungi pihak stasiun atau pilih stasiun lain.
+              </p>
+            </div>
+          ) : (
+            services.map((service) => (
+              <div key={service.id} className="bg-white rounded-xl border shadow-sm p-5 hover:shadow-md transition-shadow">
+                <div className="flex items-start justify-between gap-4">
+                  <div className="flex-1">
+                    <h3 className="font-semibold text-gray-900 text-sm leading-relaxed mb-1">
+                      {service.layanan}
+                    </h3>
+                    <p className="text-xs text-gray-500">{service.satuan}</p>
+                    <p className="text-lg font-bold text-blue-600 mt-2">
+                      Rp {service.tarif.toLocaleString("id-ID")}
+                    </p>
+                  </div>
+                  <div className="flex-shrink-0">
+                    {isInCart(service.id) ? (
+                      <span className="inline-flex items-center gap-1 px-3 py-1.5 bg-emerald-100 text-emerald-700 rounded-lg text-xs font-medium">
+                        <CheckCircle2 className="h-3.5 w-3.5" />
+                        Ditambahkan
+                      </span>
+                    ) : (
+                      <button
+                        onClick={() => addToCart(service)}
+                        className="inline-flex items-center gap-1.5 px-4 py-2 bg-blue-600 hover:bg-blue-700 text-white rounded-lg text-sm font-medium transition-colors"
+                      >
+                        <Plus className="h-4 w-4" />
+                        Tambah
+                      </button>
+                    )}
+                  </div>
+                </div>
+              </div>
+            ))
+          )}
         </div>
 
         {/* Cart / Summary */}
@@ -309,5 +373,17 @@ export default function PermohonanInformasiPage() {
         </div>
       </div>
     </div>
+  )
+}
+
+export default function PermohonanInformasiPage() {
+  return (
+    <Suspense fallback={
+      <div className="flex items-center justify-center py-12">
+        <Loader2 className="h-8 w-8 text-blue-600 animate-spin" />
+      </div>
+    }>
+      <PermohonanInformasiContent />
+    </Suspense>
   )
 }

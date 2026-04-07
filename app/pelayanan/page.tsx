@@ -7,16 +7,18 @@ import {
   FileText, 
   FileCheck, 
   History, 
-  HelpCircle, 
   ArrowRight,
   Clock,
   CheckCircle2,
-  AlertCircle,
   Loader2,
   ChevronRight,
   Shield,
   Zap,
-  Globe
+  Globe,
+  MapPin,
+  Building2,
+  ChevronDown,
+  Sparkles
 } from "lucide-react"
 import { useEffect, useState } from "react"
 
@@ -27,12 +29,39 @@ interface RequestSummary {
   completed: number
 }
 
+interface Station {
+  id: number
+  name: string
+  code: string
+}
+
+const STATION_INFO: Record<string, { city: string; icon: string; gradient: string; accent: string }> = {
+  "STAMET_BPN": { city: "Balikpapan", icon: "🌤️", gradient: "from-blue-600 via-blue-700 to-indigo-800", accent: "blue" },
+  "STAGEOF_BPN": { city: "Balikpapan", icon: "🌍", gradient: "from-amber-600 via-orange-600 to-red-700", accent: "amber" },
+  "STAMET_SMD": { city: "Samarinda", icon: "⛅", gradient: "from-emerald-600 via-teal-600 to-cyan-700", accent: "emerald" },
+  "STAMET_BRU": { city: "Berau", icon: "🌦️", gradient: "from-violet-600 via-purple-600 to-fuchsia-700", accent: "violet" },
+}
+
 export default function PelayananPage() {
   const { data: session } = useSession()
+  const [stations, setStations] = useState<Station[]>([])
+  const [selectedStation, setSelectedStation] = useState<Station | null>(null)
   const [requests, setRequests] = useState<any[]>([])
   const [loading, setLoading] = useState(true)
+  const [stationsLoading, setStationsLoading] = useState(true)
+  const [showStationPicker, setShowStationPicker] = useState(false)
 
   useEffect(() => {
+    // Fetch stations
+    fetch("/api/stations")
+      .then(res => res.json())
+      .then(data => {
+        if (Array.isArray(data)) setStations(data)
+        setStationsLoading(false)
+      })
+      .catch(() => setStationsLoading(false))
+
+    // Fetch requests
     fetch("/api/data-requests")
       .then(res => res.json())
       .then(data => {
@@ -42,6 +71,21 @@ export default function PelayananPage() {
       .catch(() => setLoading(false))
   }, [])
 
+  // Restore selected station from sessionStorage
+  useEffect(() => {
+    const saved = sessionStorage.getItem("selectedStationId")
+    if (saved && stations.length > 0) {
+      const found = stations.find(s => s.id === parseInt(saved))
+      if (found) setSelectedStation(found)
+    }
+  }, [stations])
+
+  const handleSelectStation = (station: Station) => {
+    setSelectedStation(station)
+    sessionStorage.setItem("selectedStationId", station.id.toString())
+    setShowStationPicker(false)
+  }
+
   const summary: RequestSummary = {
     total: requests.length,
     pending: requests.filter(r => ["SUBMITTED", "REVIEWING", "BILLING_ISSUED", "PAYMENT_UPLOADED"].includes(r.status)).length,
@@ -50,8 +94,9 @@ export default function PelayananPage() {
   }
 
   const recentRequests = requests.slice(0, 3)
-
   const whatsappUrl = "https://wa.me/6281234567890?text=Halo,%20saya%20membutuhkan%20bantuan%20terkait%20pelayanan%20data%20BMKG%20Kaltim."
+
+  const stationInfo = selectedStation ? STATION_INFO[selectedStation.code] || { city: "", icon: "📡", gradient: "from-gray-600 to-gray-800", accent: "gray" } : null
 
   return (
     <div className="space-y-8">
@@ -123,63 +168,149 @@ export default function PelayananPage() {
         </div>
       )}
 
-      {/* Main Actions */}
+      {/* ══════════════════════════════════════════════════════════════ */}
+      {/* STATION SELECTION + SERVICE OPTIONS */}
+      {/* ══════════════════════════════════════════════════════════════ */}
       <div>
-        <h2 className="text-lg font-semibold text-gray-900 mb-4">Layanan Permohonan Data</h2>
-        <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
-          {/* Permohonan Data Informasi */}
-          <Link
-            href="/pelayanan/permohonan-informasi"
-            className="group relative bg-white rounded-2xl border shadow-sm hover:shadow-xl transition-all duration-300 overflow-hidden"
-          >
-            <div className="h-1.5 bg-gradient-to-r from-blue-500 to-blue-600" />
-            <div className="p-6">
-              <div className="flex items-start gap-4">
-                <div className="w-14 h-14 bg-gradient-to-br from-blue-500 to-blue-700 rounded-xl flex items-center justify-center flex-shrink-0 group-hover:scale-110 transition-transform shadow-lg">
-                  <FileText className="h-7 w-7 text-white" />
-                </div>
-                <div className="flex-1">
-                  <h3 className="text-lg font-bold text-gray-900 mb-1 group-hover:text-blue-700 transition-colors">
-                    Permohonan Data Informasi
-                  </h3>
-                  <p className="text-sm text-gray-500 mb-3">
-                    Layanan data berbayar sesuai dengan Peraturan Pemerintah. Pilih jenis informasi MKG yang Anda butuhkan.
-                  </p>
-                  <div className="flex items-center gap-2 text-blue-600 font-medium text-sm">
-                    <span>Ajukan Permohonan</span>
-                    <ArrowRight className="h-4 w-4 group-hover:translate-x-1 transition-transform" />
-                  </div>
-                </div>
-              </div>
-            </div>
-          </Link>
+        <div className="flex items-center gap-2 mb-4">
+          <Sparkles className="h-5 w-5 text-emerald-600" />
+          <h2 className="text-lg font-semibold text-gray-900">Layanan Permohonan Data</h2>
+        </div>
 
-          {/* Permohonan Data Nol Rupiah */}
-          <Link
-            href="/pelayanan/permohonan-nol-rupiah"
-            className="group relative bg-white rounded-2xl border shadow-sm hover:shadow-xl transition-all duration-300 overflow-hidden"
-          >
-            <div className="h-1.5 bg-gradient-to-r from-emerald-500 to-emerald-600" />
-            <div className="p-6">
-              <div className="flex items-start gap-4">
-                <div className="w-14 h-14 bg-gradient-to-br from-emerald-500 to-teal-700 rounded-xl flex items-center justify-center flex-shrink-0 group-hover:scale-110 transition-transform shadow-lg">
-                  <FileCheck className="h-7 w-7 text-white" />
-                </div>
-                <div className="flex-1">
-                  <h3 className="text-lg font-bold text-gray-900 mb-1 group-hover:text-emerald-700 transition-colors">
-                    Permohonan Data Nol Rupiah
-                  </h3>
-                  <p className="text-sm text-gray-500 mb-3">
-                    Layanan data gratis untuk keperluan pendidikan, penelitian, dan kegiatan non-komersial lainnya.
-                  </p>
-                  <div className="flex items-center gap-2 text-emerald-600 font-medium text-sm">
-                    <span>Ajukan Permohonan</span>
-                    <ArrowRight className="h-4 w-4 group-hover:translate-x-1 transition-transform" />
+        {/* Step 1: Station Selection */}
+        <div className="mb-6">
+          <div className="flex items-center gap-2 mb-3">
+            <div className="w-7 h-7 bg-emerald-600 text-white rounded-full flex items-center justify-center text-sm font-bold">1</div>
+            <p className="text-sm font-medium text-gray-700">Pilih Stasiun Tujuan Permohonan</p>
+          </div>
+
+          {stationsLoading ? (
+            <div className="flex items-center justify-center py-8">
+              <div className="h-6 w-6 border-2 border-emerald-600 border-t-transparent rounded-full animate-spin" />
+            </div>
+          ) : (
+            <>
+              {/* Station Cards Grid */}
+              <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
+                {stations.map((station) => {
+                  const info = STATION_INFO[station.code] || { city: "", icon: "📡", gradient: "from-gray-600 to-gray-800", accent: "gray" }
+                  const isSelected = selectedStation?.id === station.id
+                  return (
+                    <button
+                      key={station.id}
+                      onClick={() => handleSelectStation(station)}
+                      className={`group relative text-left rounded-2xl border-2 transition-all duration-300 overflow-hidden ${
+                        isSelected
+                          ? "border-emerald-500 shadow-lg shadow-emerald-100 scale-[1.02]"
+                          : "border-gray-200 hover:border-gray-300 hover:shadow-md"
+                      }`}
+                    >
+                      {/* Gradient header */}
+                      <div className={`bg-gradient-to-r ${info.gradient} p-4 text-white`}>
+                        <div className="flex items-center justify-between">
+                          <span className="text-2xl">{info.icon}</span>
+                          {isSelected && (
+                            <div className="flex items-center gap-1.5 bg-white/20 backdrop-blur-sm px-2.5 py-1 rounded-full text-xs font-medium animate-in zoom-in duration-300">
+                              <CheckCircle2 className="h-3.5 w-3.5" />
+                              Dipilih
+                            </div>
+                          )}
+                        </div>
+                      </div>
+                      <div className="p-4 bg-white">
+                        <h3 className="font-semibold text-gray-900 text-sm leading-snug mb-1.5">
+                          {station.name}
+                        </h3>
+                        <div className="flex items-center gap-1.5 text-xs text-gray-500">
+                          <MapPin className="h-3.5 w-3.5" />
+                          <span>{info.city}</span>
+                        </div>
+                      </div>
+                      {/* Selection indicator bar */}
+                      <div className={`h-1 transition-all duration-300 ${
+                        isSelected ? "bg-emerald-500" : "bg-transparent"
+                      }`} />
+                    </button>
+                  )
+                })}
+              </div>
+            </>
+          )}
+        </div>
+
+        {/* Step 2: Choose Request Type (only visible after station is selected) */}
+        <div className={`transition-all duration-500 ${selectedStation ? "opacity-100 translate-y-0" : "opacity-30 pointer-events-none translate-y-4"}`}>
+          <div className="flex items-center gap-2 mb-4">
+            <div className={`w-7 h-7 rounded-full flex items-center justify-center text-sm font-bold ${
+              selectedStation ? "bg-emerald-600 text-white" : "bg-gray-300 text-gray-500"
+            }`}>2</div>
+            <p className="text-sm font-medium text-gray-700">
+              Pilih Jenis Permohonan
+              {selectedStation && (
+                <span className="text-emerald-600 ml-1">
+                  — {selectedStation.name.split(" - ")[0].split("Kelas")[0].trim()}
+                </span>
+              )}
+            </p>
+          </div>
+
+          <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
+            {/* Permohonan Data Informasi */}
+            <Link
+              href={selectedStation ? `/pelayanan/permohonan-informasi?stationId=${selectedStation.id}` : "#"}
+              className="group relative bg-white rounded-2xl border shadow-sm hover:shadow-xl transition-all duration-300 overflow-hidden"
+              onClick={(e) => { if (!selectedStation) e.preventDefault() }}
+            >
+              <div className="h-1.5 bg-gradient-to-r from-blue-500 to-blue-600" />
+              <div className="p-6">
+                <div className="flex items-start gap-4">
+                  <div className="w-14 h-14 bg-gradient-to-br from-blue-500 to-blue-700 rounded-xl flex items-center justify-center flex-shrink-0 group-hover:scale-110 transition-transform shadow-lg">
+                    <FileText className="h-7 w-7 text-white" />
+                  </div>
+                  <div className="flex-1">
+                    <h3 className="text-lg font-bold text-gray-900 mb-1 group-hover:text-blue-700 transition-colors">
+                      Permohonan Data Informasi
+                    </h3>
+                    <p className="text-sm text-gray-500 mb-3">
+                      Layanan data berbayar sesuai dengan Peraturan Pemerintah. Pilih jenis informasi MKG yang Anda butuhkan.
+                    </p>
+                    <div className="flex items-center gap-2 text-blue-600 font-medium text-sm">
+                      <span>Ajukan Permohonan</span>
+                      <ArrowRight className="h-4 w-4 group-hover:translate-x-1 transition-transform" />
+                    </div>
                   </div>
                 </div>
               </div>
-            </div>
-          </Link>
+            </Link>
+
+            {/* Permohonan Data Nol Rupiah */}
+            <Link
+              href={selectedStation ? `/pelayanan/permohonan-nol-rupiah?stationId=${selectedStation.id}` : "#"}
+              className="group relative bg-white rounded-2xl border shadow-sm hover:shadow-xl transition-all duration-300 overflow-hidden"
+              onClick={(e) => { if (!selectedStation) e.preventDefault() }}
+            >
+              <div className="h-1.5 bg-gradient-to-r from-emerald-500 to-emerald-600" />
+              <div className="p-6">
+                <div className="flex items-start gap-4">
+                  <div className="w-14 h-14 bg-gradient-to-br from-emerald-500 to-teal-700 rounded-xl flex items-center justify-center flex-shrink-0 group-hover:scale-110 transition-transform shadow-lg">
+                    <FileCheck className="h-7 w-7 text-white" />
+                  </div>
+                  <div className="flex-1">
+                    <h3 className="text-lg font-bold text-gray-900 mb-1 group-hover:text-emerald-700 transition-colors">
+                      Permohonan Data Nol Rupiah
+                    </h3>
+                    <p className="text-sm text-gray-500 mb-3">
+                      Layanan data gratis untuk keperluan pendidikan, penelitian, dan kegiatan non-komersial lainnya.
+                    </p>
+                    <div className="flex items-center gap-2 text-emerald-600 font-medium text-sm">
+                      <span>Ajukan Permohonan</span>
+                      <ArrowRight className="h-4 w-4 group-hover:translate-x-1 transition-transform" />
+                    </div>
+                  </div>
+                </div>
+              </div>
+            </Link>
+          </div>
         </div>
       </div>
 
@@ -228,6 +359,9 @@ export default function PelayananPage() {
                         {new Date(req.createdAt).toLocaleDateString("id-ID", {
                           day: "numeric", month: "short", year: "numeric"
                         })}
+                        {req.station && (
+                          <> • <Building2 className="h-3 w-3 inline" /> {req.station.name.split(" - ")[1] || req.station.code}</>
+                        )}
                         {req.requestType === "INFORMASI" && req.totalAmount > 0 && (
                           <> • Rp {req.totalAmount.toLocaleString("id-ID")}</>
                         )}

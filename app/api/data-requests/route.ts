@@ -2,7 +2,7 @@ import { NextResponse } from "next/server";
 import prisma from "@/lib/prisma";
 import { auth } from "@/lib/auth";
 
-// GET - List data requests for current user (or all for admin)
+// GET - List data requests for current user (or filtered by station for DATIN)
 export async function GET(req: Request) {
   const session = await auth();
   if (!session) {
@@ -11,12 +11,33 @@ export async function GET(req: Request) {
 
   try {
     const userId = parseInt(session.user?.id || "0");
-    const isAdminOrDatin = ["ADMIN", "DATIN"].includes(session.user?.role || "");
+    const userRole = session.user?.role || "USER";
+    const userStationId = session.user?.stationId
+      ? parseInt(session.user.stationId)
+      : null;
+
+    let where: any = {};
+
+    if (userRole === "ADMIN") {
+      // Admin sees all requests
+      where = {};
+    } else if (userRole === "DATIN") {
+      // DATIN sees only requests for their station
+      if (userStationId) {
+        where = { stationId: userStationId };
+      } else {
+        where = {}; // fallback: DATIN without station sees all (shouldn't happen)
+      }
+    } else {
+      // Regular users see only their own requests
+      where = { userId };
+    }
 
     const requests = await prisma.dataRequest.findMany({
-      where: isAdminOrDatin ? {} : { userId },
+      where,
       include: {
         user: { select: { id: true, name: true, email: true } },
+        station: { select: { id: true, name: true, code: true } },
         items: true,
       },
       orderBy: { createdAt: "desc" },
@@ -53,11 +74,22 @@ export async function POST(req: Request) {
       introLetterUrl,
       statementUrl,
       proposalUrl,
+      stationId, // NEW: station ID
       items, // for INFORMASI type: [{ serviceId, serviceName, unit, pricePerUnit, quantity }]
     } = body;
 
     if (!requestType || !fullName || !email) {
       return NextResponse.json({ message: "Data tidak lengkap" }, { status: 400 });
+    }
+
+    if (!stationId) {
+      return NextResponse.json({ message: "Stasiun tujuan wajib dipilih" }, { status: 400 });
+    }
+
+    // Verify station exists
+    const station = await prisma.station.findUnique({ where: { id: stationId } });
+    if (!station) {
+      return NextResponse.json({ message: "Stasiun tidak ditemukan" }, { status: 400 });
     }
 
     // Calculate total for INFORMASI type
@@ -69,6 +101,7 @@ export async function POST(req: Request) {
     const dataRequest = await prisma.dataRequest.create({
       data: {
         userId,
+        stationId,
         requestType,
         fullName,
         email,
@@ -97,6 +130,7 @@ export async function POST(req: Request) {
       },
       include: {
         items: true,
+        station: { select: { id: true, name: true, code: true } },
         user: { select: { id: true, name: true, email: true } },
       },
     });
@@ -107,7 +141,7 @@ export async function POST(req: Request) {
         userId,
         action: "CREATE",
         target: "Permohonan Data",
-        details: `Permohonan ${requestType === "INFORMASI" ? "Data Informasi" : "Data Nol Rupiah"} oleh ${fullName}`,
+        details: `Permohonan ${requestType === "INFORMASI" ? "Data Informasi" : "Data Nol Rupiah"} oleh ${fullName} ke ${station.name}`,
       },
     });
 

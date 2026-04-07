@@ -66,6 +66,7 @@ const authConfig = {
                     name: user.name,
                     email: user.email,
                     role: user.role,
+                    stationId: user.stationId?.toString() || undefined,
                 };
             } catch (error: any) {
                 if (error?.message?.startsWith("UNVERIFIED:")) {
@@ -81,6 +82,7 @@ const authConfig = {
     jwt({ token, user }) {
       if (user) {
         token.role = user.role;
+        token.stationId = user.stationId;
       }
       return token;
     },
@@ -88,6 +90,7 @@ const authConfig = {
       if (session.user) {
         session.user.role = token.role;
         session.user.id = token.sub || "";
+        session.user.stationId = token.stationId;
       }
       return session;
     },

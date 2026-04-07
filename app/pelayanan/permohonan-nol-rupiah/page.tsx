@@ -1,12 +1,12 @@
 "use client"
 
 import { useSession } from "next-auth/react"
-import { useRouter } from "next/navigation"
-import { useState, useRef } from "react"
+import { useRouter, useSearchParams } from "next/navigation"
+import { useState, useRef, useEffect, Suspense } from "react"
 import { Button } from "@/components/ui/button"
 import { Input } from "@/components/ui/input"
 import { Label } from "@/components/ui/label"
-import { ArrowLeft, Upload, FileText, X, Loader2, CheckCircle2, ExternalLink, Info, AlertTriangle } from "lucide-react"
+import { ArrowLeft, Upload, FileText, X, Loader2, CheckCircle2, ExternalLink, Info, AlertTriangle, Building2 } from "lucide-react"
 import Link from "next/link"
 
 interface UploadedDoc {
@@ -15,14 +15,24 @@ interface UploadedDoc {
   size: number
 }
 
+interface Station {
+  id: number
+  name: string
+  code: string
+}
+
 const MONTHS = [
   "Januari", "Februari", "Maret", "April", "Mei", "Juni",
   "Juli", "Agustus", "September", "Oktober", "November", "Desember"
 ]
 
-export default function PermohonanNolRupiahPage() {
+function PermohonanNolRupiahContent() {
   const { data: session } = useSession()
   const router = useRouter()
+  const searchParams = useSearchParams()
+  const stationId = searchParams.get("stationId")
+
+  const [station, setStation] = useState<Station | null>(null)
 
   // Form state
   const [fullName, setFullName] = useState(session?.user?.name || "")
@@ -50,13 +60,30 @@ export default function PermohonanNolRupiahPage() {
   const statementRef = useRef<HTMLInputElement>(null)
   const proposalRef = useRef<HTMLInputElement>(null)
 
+  useEffect(() => {
+    if (!stationId) {
+      router.push("/pelayanan")
+      return
+    }
+
+    // Fetch station info
+    fetch("/api/stations")
+      .then(res => res.json())
+      .then(data => {
+        if (Array.isArray(data)) {
+          const found = data.find((s: Station) => s.id === parseInt(stationId))
+          if (found) setStation(found)
+        }
+      })
+  }, [stationId, router])
+
   // Pre-fill user data
-  useState(() => {
+  useEffect(() => {
     if (session?.user) {
       setFullName(session.user.name || "")
       setEmail(session.user.email || "")
     }
-  })
+  }, [session])
 
   const uploadFile = async (file: File, folder: string): Promise<UploadedDoc> => {
     const formData = new FormData()
@@ -143,6 +170,10 @@ export default function PermohonanNolRupiahPage() {
       setError("Dokumen proposal penelitian wajib diunggah.")
       return
     }
+    if (!stationId) {
+      setError("Stasiun tujuan belum dipilih.")
+      return
+    }
 
     setSubmitting(true)
 
@@ -152,6 +183,7 @@ export default function PermohonanNolRupiahPage() {
         headers: { "Content-Type": "application/json" },
         body: JSON.stringify({
           requestType: "NOL_RUPIAH",
+          stationId: parseInt(stationId),
           fullName,
           email,
           phone,
@@ -189,7 +221,7 @@ export default function PermohonanNolRupiahPage() {
           </div>
           <h2 className="text-2xl font-bold text-gray-900 mb-2">Permohonan Berhasil!</h2>
           <p className="text-gray-500">
-            Permohonan data nol rupiah Anda telah dikirim dan akan diproses oleh tim kami.
+            Permohonan data nol rupiah Anda telah dikirim ke {station?.name || "stasiun tujuan"} dan akan diproses oleh tim kami.
           </p>
           <p className="text-sm text-gray-400 mt-4">Mengarahkan ke halaman riwayat...</p>
         </div>
@@ -294,6 +326,19 @@ export default function PermohonanNolRupiahPage() {
           <p className="text-gray-500 text-sm">Layanan data gratis untuk pendidikan & penelitian</p>
         </div>
       </div>
+
+      {/* Station Indicator */}
+      {station && (
+        <div className="bg-gradient-to-r from-emerald-50 to-teal-50 border border-emerald-200 rounded-xl p-4 flex items-center gap-3">
+          <div className="w-10 h-10 bg-emerald-100 rounded-lg flex items-center justify-center flex-shrink-0">
+            <Building2 className="h-5 w-5 text-emerald-600" />
+          </div>
+          <div>
+            <p className="text-sm font-semibold text-emerald-900">Stasiun Tujuan</p>
+            <p className="text-xs text-emerald-700">{station.name}</p>
+          </div>
+        </div>
+      )}
 
       <form onSubmit={handleSubmit} className="space-y-6">
         {/* Personal Info */}
@@ -473,5 +518,17 @@ export default function PermohonanNolRupiahPage() {
         </div>
       </form>
     </div>
+  )
+}
+
+export default function PermohonanNolRupiahPage() {
+  return (
+    <Suspense fallback={
+      <div className="flex items-center justify-center py-12">
+        <Loader2 className="h-8 w-8 text-emerald-600 animate-spin" />
+      </div>
+    }>
+      <PermohonanNolRupiahContent />
+    </Suspense>
   )
 }

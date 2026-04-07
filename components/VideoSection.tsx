@@ -34,13 +34,13 @@ export function VideoSection() {
 
   if (loading) {
     return (
-      <section className="py-16 bg-gray-50">
+      <section className="py-10 md:py-16 bg-gray-50">
         <div className="container mx-auto px-4 max-w-7xl">
-          <div className="text-center mb-10">
-            <h2 className="text-3xl font-bold text-gray-900 mb-4">Galeri Video</h2>
-            <div className="h-1 w-20 bg-blue-500 mx-auto rounded-full"></div>
+          <div className="text-center mb-6 md:mb-10">
+            <h2 className="text-2xl md:text-3xl font-bold text-gray-900 mb-3 md:mb-4">Galeri Video</h2>
+            <div className="h-1 w-16 md:w-20 bg-blue-500 mx-auto rounded-full"></div>
           </div>
-          <div className="grid grid-cols-1 md:grid-cols-2 gap-6 max-w-5xl mx-auto">
+          <div className="grid grid-cols-1 sm:grid-cols-2 gap-4 md:gap-6 max-w-5xl mx-auto">
             {[1, 2].map((i) => (
               <div key={i} className="aspect-video rounded-xl bg-gray-200 animate-pulse" />
             ))}
@@ -52,26 +52,26 @@ export function VideoSection() {
 
   if (videos.length === 0) {
     return (
-      <section className="py-16 bg-gray-50">
+      <section className="py-10 md:py-16 bg-gray-50">
         <div className="container mx-auto px-4 max-w-7xl">
-          <div className="text-center mb-10">
-            <h2 className="text-3xl font-bold text-gray-900 mb-4">Galeri Video</h2>
-            <div className="h-1 w-20 bg-blue-500 mx-auto rounded-full"></div>
-            <p className="mt-4 text-gray-600">Dokumentasi dan informasi visual kegiatan BMKG Kalimantan Timur</p>
+          <div className="text-center mb-6 md:mb-10">
+            <h2 className="text-2xl md:text-3xl font-bold text-gray-900 mb-3 md:mb-4">Galeri Video</h2>
+            <div className="h-1 w-16 md:w-20 bg-blue-500 mx-auto rounded-full"></div>
+            <p className="mt-3 md:mt-4 text-sm md:text-base text-gray-600">Dokumentasi dan informasi visual kegiatan BMKG Kalimantan Timur</p>
           </div>
-          <p className="text-center text-gray-500">Belum ada video yang ditambahkan.</p>
+          <p className="text-center text-sm md:text-base text-gray-500">Belum ada video yang ditambahkan.</p>
         </div>
       </section>
     );
   }
 
   return (
-    <section className="py-16 bg-gray-50">
+    <section className="py-10 md:py-16 bg-gray-50">
       <div className="container mx-auto px-4 max-w-7xl">
-        <div className="text-center mb-10">
-          <h2 className="text-3xl font-bold text-gray-900 mb-4">Galeri Video</h2>
-          <div className="h-1 w-20 bg-blue-500 mx-auto rounded-full"></div>
-          <p className="mt-4 text-gray-600">Dokumentasi dan informasi visual kegiatan BMKG Kalimantan Timur</p>
+        <div className="text-center mb-6 md:mb-10">
+          <h2 className="text-2xl md:text-3xl font-bold text-gray-900 mb-3 md:mb-4">Galeri Video</h2>
+          <div className="h-1 w-16 md:w-20 bg-blue-500 mx-auto rounded-full"></div>
+          <p className="mt-3 md:mt-4 text-sm md:text-base text-gray-600">Dokumentasi dan informasi visual kegiatan BMKG Kalimantan Timur</p>
         </div>
 
         <Carousel

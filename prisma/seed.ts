@@ -14,7 +14,7 @@ async function main() {
     {
       name: "Stasiun Meteorologi Kelas I Sultan Aji Muhammad Sulaiman Sepinggan - Balikpapan",
       code: "STAMET_BPN",
-      hasAdmin: true, // SATU-SATUNYA YANG PUNYA ADMIN
+      hasAdmin: true, 
     },
     {
       name: "Stasiun Geofisika Kelas III Balikpapan",
@@ -382,6 +382,53 @@ async function main() {
       console.log('✅ Created SKM question:', q.code, '-', q.category)
     } else {
       console.log('⏩ SKM question already exists:', q.code)
+    }
+  }
+
+  // ═══════════════════════════════════════════════════════════════
+  // STATION SERVICES (Layanan per Stasiun)
+  // ═══════════════════════════════════════════════════════════════
+
+  const defaultServices = [
+    { layanan: "Informasi Cuaca untuk Pelayaran", satuan: "per route unit", tarif: 250000 },
+    { layanan: "Informasi Cuaca untuk Pelabuhan", satuan: "per lokasi per hari", tarif: 225000 },
+    { layanan: "Informasi Cuaca untuk Pengeboran Lepas Pantai", satuan: "per dokumen per hari per lokasi", tarif: 330000 },
+    { layanan: "Analisa & Prakiraan Hujan Bulanan - Data Unsur Cuaca", satuan: "per buku", tarif: 65000 },
+    { layanan: "Prakiraan Musim Kemarau", satuan: "per buku", tarif: 230000 },
+    { layanan: "Prakiraan Musim Hujan", satuan: "per buku", tarif: 230000 },
+    { layanan: "Informasi MKG untuk Klaim Asuransi - Informasi Meteorologi", satuan: "per lokasi per hari", tarif: 175000 },
+    { layanan: "Informasi Cuaca Khusus untuk Kegiatan Olah Raga", satuan: "per lokasi per hari", tarif: 100000 },
+    { layanan: "Informasi Cuaca Khusus untuk kegiatan komersil outdoor/indoor", satuan: "per lokasi per hari", tarif: 100000 },
+    { layanan: "Informasi Radar Cuaca - per 10 menit", satuan: "per data per lokasi", tarif: 70000 },
+    { layanan: "Informasi Iklim Maritim - Peta Spasial Informasi Maritim", satuan: "per peta per bulan", tarif: 300000 },
+    { layanan: "Informasi Iklim Maritim - Informasi Tabular dan Grafik Maritim", satuan: "per tabel per bulan", tarif: 350000 },
+    { layanan: "Jasa Konsultasi Meteorologi - Informasi Meteorologi Khusus untuk Pendukung Kegiatan Proyek, Survei dan Penelitian Komersil", satuan: "per lokasi", tarif: 3750000 },
+    { layanan: "Jasa Konsultasi Klimatologi - Analisa Iklim", satuan: "per lokasi", tarif: 9500000 },
+  ]
+
+  // Seed services for all stations
+  for (const stationCode of ["STAMET_BPN", "STAGEOF_BPN", "STAMET_SMD", "STAMET_BRU"]) {
+    const station = createdStations[stationCode]
+    if (!station) continue
+
+    const existingServices = await prisma.stationService.count({
+      where: { stationId: station.id },
+    })
+
+    if (existingServices === 0) {
+      for (const svc of defaultServices) {
+        await prisma.stationService.create({
+          data: {
+            stationId: station.id,
+            layanan: svc.layanan,
+            satuan: svc.satuan,
+            tarif: svc.tarif,
+          },
+        })
+      }
+      console.log(`✅ Seeded ${defaultServices.length} services for ${stationCode}`)
+    } else {
+      console.log(`⏩ Services already exist for ${stationCode} (${existingServices} services)`)
     }
   }
 

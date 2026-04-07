@@ -44,15 +44,15 @@ export function NewsSection() {
 
   if (loading) {
     return (
-      <section className="py-16 bg-white">
+      <section className="py-10 md:py-16 bg-white">
         <div className="container mx-auto px-4 max-w-7xl">
-          <div className="text-center mb-10">
-            <h2 className="text-3xl font-bold text-gray-900 mb-4">Berita & Kegiatan Terkini</h2>
-            <div className="h-1 w-20 bg-blue-500 mx-auto rounded-full"></div>
+          <div className="text-center mb-6 md:mb-10">
+            <h2 className="text-2xl md:text-3xl font-bold text-gray-900 mb-3 md:mb-4">Berita & Kegiatan Terkini</h2>
+            <div className="h-1 w-16 md:w-20 bg-blue-500 mx-auto rounded-full"></div>
           </div>
-          <div className="grid grid-cols-1 md:grid-cols-3 gap-6">
+          <div className="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-3 gap-4 md:gap-6">
             {[1, 2, 3].map((i) => (
-              <div key={i} className="h-80 rounded-xl bg-gray-100 animate-pulse" />
+              <div key={i} className="h-64 md:h-80 rounded-xl bg-gray-100 animate-pulse" />
             ))}
           </div>
         </div>
@@ -62,24 +62,24 @@ export function NewsSection() {
 
   if (news.length === 0) {
     return (
-      <section className="py-16 bg-white">
+      <section className="py-10 md:py-16 bg-white">
         <div className="container mx-auto px-4 max-w-7xl">
-          <div className="text-center mb-10">
-            <h2 className="text-3xl font-bold text-gray-900 mb-4">Berita & Kegiatan Terkini</h2>
-            <div className="h-1 w-20 bg-blue-500 mx-auto rounded-full"></div>
+          <div className="text-center mb-6 md:mb-10">
+            <h2 className="text-2xl md:text-3xl font-bold text-gray-900 mb-3 md:mb-4">Berita & Kegiatan Terkini</h2>
+            <div className="h-1 w-16 md:w-20 bg-blue-500 mx-auto rounded-full"></div>
           </div>
-          <p className="text-center text-gray-500">Belum ada berita & kegiatan terkini.</p>
+          <p className="text-center text-sm md:text-base text-gray-500">Belum ada berita & kegiatan terkini.</p>
         </div>
       </section>
     );
   }
 
   return (
-    <section className="py-16 bg-white">
+    <section className="py-10 md:py-16 bg-white">
       <div className="container mx-auto px-4 max-w-7xl">
-        <div className="text-center mb-10">
-          <h2 className="text-3xl font-bold text-gray-900 mb-4">Berita & Kegiatan Terkini</h2>
-          <div className="h-1 w-20 bg-blue-500 mx-auto rounded-full"></div>
+        <div className="text-center mb-6 md:mb-10">
+          <h2 className="text-2xl md:text-3xl font-bold text-gray-900 mb-3 md:mb-4">Berita & Kegiatan Terkini</h2>
+          <div className="h-1 w-16 md:w-20 bg-blue-500 mx-auto rounded-full"></div>
         </div>
 
         <Carousel

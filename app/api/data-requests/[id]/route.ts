@@ -19,6 +19,7 @@ export async function GET(
       include: {
         items: true,
         user: { select: { id: true, name: true, email: true } },
+        station: { select: { id: true, name: true, code: true } },
         skmResponses: {
           include: {
             question: true,

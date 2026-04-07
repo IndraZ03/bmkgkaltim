@@ -19,12 +19,10 @@ import { useState } from "react";
 import { AnimatePresence, motion } from "framer-motion";
 import { X, ZoomIn } from "lucide-react";
 
-// ... previous imports ...
-
 export function EarthquakeCard({ data, loading, error }: EarthquakeCardProps) {
   const [isZoomed, setIsZoomed] = useState(false);
 
-  if (loading) return null; // Or a skeleton
+  if (loading) return null;
   if (error || !data) return null;
 
   const imageUrl = `https://data.bmkg.go.id/DataMKG/TEWS/${data.Shakemap}`;
@@ -36,7 +34,7 @@ export function EarthquakeCard({ data, loading, error }: EarthquakeCardProps) {
           <div className="flex flex-col md:flex-row">
             {/* Left Side - Shakemap Image */}
             <div 
-              className="w-full md:w-1/3 relative min-h-[300px] md:min-h-full bg-gray-100 cursor-zoom-in group"
+              className="w-full md:w-1/3 relative min-h-[220px] sm:min-h-[300px] md:min-h-full bg-gray-100 cursor-zoom-in group"
               onClick={() => setIsZoomed(true)}
             >
               <Image
@@ -52,69 +50,68 @@ export function EarthquakeCard({ data, loading, error }: EarthquakeCardProps) {
             </div>
 
             {/* Right Side - Details */}
-            <div className="w-full md:w-2/3 p-6 md:p-8 flex flex-col justify-center">
-              {/* ... details ... */}
-              <div className="mb-6">
-                <h2 className="text-3xl font-bold text-gray-900 mb-2">Gempa Bumi Terkini</h2>
-                <p className="text-gray-500 text-lg">
+            <div className="w-full md:w-2/3 p-5 sm:p-6 md:p-8 flex flex-col justify-center">
+              <div className="mb-4 sm:mb-6">
+                <h2 className="text-xl sm:text-3xl font-bold text-gray-900 mb-1 sm:mb-2">Gempa Bumi Terkini</h2>
+                <p className="text-gray-500 text-sm sm:text-lg">
                   {data.Tanggal}, {data.Jam}
                 </p>
               </div>
 
-              <div className="mb-6">
-                <Badge className="bg-green-100 text-green-700 hover:bg-green-100 border-green-200 px-4 py-1.5 text-sm font-medium rounded-full">
+              <div className="mb-4 sm:mb-6">
+                <Badge className="bg-green-100 text-green-700 hover:bg-green-100 border-green-200 px-3 sm:px-4 py-1 sm:py-1.5 text-xs sm:text-sm font-medium rounded-full">
                   Gempa Dirasakan
                 </Badge>
               </div>
 
-              <div className="mb-8">
-                <p className="text-xl font-semibold text-gray-900 leading-relaxed">
+              <div className="mb-5 sm:mb-8">
+                <p className="text-base sm:text-xl font-semibold text-gray-900 leading-relaxed">
                   {data.Wilayah}
                 </p>
               </div>
 
               {/* Metrics Grid */}
-              <div className="grid grid-cols-1 md:grid-cols-3 gap-4 mb-8">
+              <div className="grid grid-cols-3 gap-2 sm:gap-4 mb-5 sm:mb-8">
                 {/* Magnitude */}
-                <div className="bg-gray-50 rounded-xl p-4 border border-gray-100">
-                  <div className="flex items-center gap-2 mb-2 text-gray-500">
-                    <Activity className="h-4 w-4" />
-                    <span className="text-sm font-medium">Magnitudo</span>
+                <div className="bg-gray-50 rounded-lg sm:rounded-xl p-3 sm:p-4 border border-gray-100">
+                  <div className="flex items-center gap-1.5 sm:gap-2 mb-1 sm:mb-2 text-gray-500">
+                    <Activity className="h-3.5 w-3.5 sm:h-4 sm:w-4" />
+                    <span className="text-[10px] sm:text-sm font-medium">Magnitudo</span>
                   </div>
-                  <p className="text-2xl font-bold text-gray-900">{data.Magnitude}</p>
+                  <p className="text-lg sm:text-2xl font-bold text-gray-900">{data.Magnitude}</p>
                 </div>
 
                 {/* Kedalaman */}
-                <div className="bg-gray-50 rounded-xl p-4 border border-gray-100">
-                  <div className="flex items-center gap-2 mb-2 text-gray-500">
-                    <Waves className="h-4 w-4" />
-                    <span className="text-sm font-medium">Kedalaman</span>
+                <div className="bg-gray-50 rounded-lg sm:rounded-xl p-3 sm:p-4 border border-gray-100">
+                  <div className="flex items-center gap-1.5 sm:gap-2 mb-1 sm:mb-2 text-gray-500">
+                    <Waves className="h-3.5 w-3.5 sm:h-4 sm:w-4" />
+                    <span className="text-[10px] sm:text-sm font-medium">Kedalaman</span>
                   </div>
-                  <p className="text-2xl font-bold text-gray-900">{data.Kedalaman}</p>
+                  <p className="text-lg sm:text-2xl font-bold text-gray-900">{data.Kedalaman}</p>
                 </div>
 
                 {/* Koordinat */}
-                <div className="bg-gray-50 rounded-xl p-4 border border-gray-100">
-                  <div className="flex items-center gap-2 mb-2 text-gray-500">
-                    <MapPin className="h-4 w-4" />
-                    <span className="text-sm font-medium">Koordinat</span>
+                <div className="bg-gray-50 rounded-lg sm:rounded-xl p-3 sm:p-4 border border-gray-100">
+                  <div className="flex items-center gap-1.5 sm:gap-2 mb-1 sm:mb-2 text-gray-500">
+                    <MapPin className="h-3.5 w-3.5 sm:h-4 sm:w-4" />
+                    <span className="text-[10px] sm:text-sm font-medium">Koordinat</span>
                   </div>
-                  <p className="text-lg font-bold text-gray-900 whitespace-nowrap">
+                  <p className="text-xs sm:text-lg font-bold text-gray-900 break-all sm:whitespace-nowrap">
                     {data.Lintang} - {data.Bujur}
                   </p>
                 </div>
               </div>
 
-              <div className="space-y-4">
-                <div className="flex items-start gap-2 text-gray-600">
-                  <span className="font-semibold text-gray-900 shrink-0">Saran BMKG:</span>
-                  <p className="leading-relaxed">{data.Potensi}</p>
+              <div className="space-y-3 sm:space-y-4">
+                <div className="flex flex-col sm:flex-row sm:items-start gap-1 sm:gap-2 text-gray-600">
+                  <span className="font-semibold text-gray-900 shrink-0 text-sm sm:text-base">Saran BMKG:</span>
+                  <p className="leading-relaxed text-sm sm:text-base">{data.Potensi}</p>
                 </div>
                 
                 <Link
                   href="https://www.bmkg.go.id/gempabumi/gempabumi-terkini.bmkg"
                   target="_blank"
-                  className="inline-flex items-center text-blue-600 font-semibold hover:text-blue-700 transition-colors"
+                  className="inline-flex items-center text-blue-600 font-semibold hover:text-blue-700 transition-colors text-sm sm:text-base"
                 >
                   Selengkapnya
                   <ArrowRight className="ml-2 h-4 w-4" />

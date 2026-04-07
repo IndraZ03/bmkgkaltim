@@ -41,9 +41,26 @@ model Station {
   hasAdmin    Boolean  @default(false) @map("has_admin")
   createdAt   DateTime @default(now()) @map("created_at")
 
-  users       User[]
+  users          User[]
+  services       StationService[]
+  dataRequests   DataRequest[]
 
   @@map("stations")
+}
+
+// Per-station services (Layanan) managed by DATIN
+model StationService {
+  id          Int      @id @default(autoincrement())
+  stationId   Int      @map("station_id")
+  station     Station  @relation(fields: [stationId], references: [id], onDelete: Cascade)
+  layanan     String   @db.Text    // Service name
+  satuan      String               // Unit description
+  tarif       Float                // Price per unit
+  isActive    Boolean  @default(true) @map("is_active")
+  createdAt   DateTime @default(now()) @map("created_at")
+  updatedAt   DateTime @updatedAt @map("updated_at")
+
+  @@map("station_services")
 }
 
 model EmailVerification {
@@ -133,6 +150,8 @@ model DataRequest {
   id              Int               @id @default(autoincrement())
   userId          Int               @map("user_id")
   user            User              @relation(fields: [userId], references: [id])
+  stationId       Int?              @map("station_id")
+  station         Station?          @relation(fields: [stationId], references: [id])
   requestType     RequestType       @map("request_type")
   status          RequestStatus     @default(SUBMITTED)
   
@@ -269,4 +288,14 @@ enum RequestStatus {
   COMPLETED
   REJECTED
   @@map("request_status")
+}
+
+// Radar Images for tracking updates
+model RadarImage {
+  id          Int      @id @default(autoincrement())
+  type        String   @unique  // e.g. "CMAX_Balikpapan"
+  filename    String            // "CMAX_Balikpapan.gif"
+  updatedAt   DateTime @updatedAt @map("updated_at")
+
+  @@map("radar_images")
 }

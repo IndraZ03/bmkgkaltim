@@ -69,7 +69,7 @@ export function WeatherAlertBanner() {
               initial={{ scale: 0.95, opacity: 0, y: 20 }}
               animate={{ scale: 1, opacity: 1, y: 0 }}
               exit={{ scale: 0.95, opacity: 0, y: 20 }}
-              className="bg-white rounded-2xl w-full max-w-4xl max-h-[90vh] overflow-hidden shadow-2xl"
+              className="bg-white rounded-xl md:rounded-2xl w-full max-w-4xl max-h-[95vh] md:max-h-[90vh] overflow-hidden shadow-2xl flex flex-col"
               onClick={(e) => e.stopPropagation()}
             >
               {/* Header */}
@@ -87,8 +87,8 @@ export function WeatherAlertBanner() {
               </div>
 
               {/* Content */}
-              <div className="p-6 overflow-y-auto max-h-[calc(80vh-80px)]">
-                <div className="space-y-6">
+              <div className="p-4 md:p-6 overflow-y-auto flex-1">
+                <div className="space-y-4 md:space-y-6">
                   <div>
                     <h4 className="font-semibold text-gray-900 text-lg mb-1">
                       {alerts[selectedAlert].title}
@@ -107,7 +107,7 @@ export function WeatherAlertBanner() {
                              <img 
                                src={alerts[selectedAlert].image} 
                                alt="Infografis Peringatan Cuaca" 
-                               className="h-[398px] w-auto max-w-full object-contain cursor-zoom-in hover:scale-[1.02] transition-transform duration-200"
+                               className="h-auto w-full md:h-[398px] md:w-auto max-w-full object-contain rounded-lg cursor-zoom-in hover:scale-[1.02] transition-transform duration-200"
                                onClick={() => setZoomedImage(alerts[selectedAlert].image || null)}
                              />
                           </div>
@@ -117,7 +117,7 @@ export function WeatherAlertBanner() {
                              <img 
                                src={alerts[selectedAlert].imageText} 
                                alt="Detail Infografis" 
-                               className="h-[398px] w-auto max-w-full object-contain cursor-zoom-in hover:scale-[1.02] transition-transform duration-200"
+                               className="h-auto w-full md:h-[398px] md:w-auto max-w-full object-contain rounded-lg cursor-zoom-in hover:scale-[1.02] transition-transform duration-200"
                                onClick={() => setZoomedImage(alerts[selectedAlert].imageText || null)}
                              />
                           </div>

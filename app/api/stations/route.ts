@@ -1,15 +1,8 @@
 import { NextResponse } from "next/server";
 import prisma from "@/lib/prisma";
-import { auth } from "@/lib/auth";
 
-// GET all stations
+// GET all stations - public endpoint for station selection
 export async function GET() {
-  const session = await auth();
-  
-  if (!session) {
-    return NextResponse.json({ message: "Unauthorized" }, { status: 401 });
-  }
-
   try {
     const stations = await prisma.station.findMany({
       select: {
